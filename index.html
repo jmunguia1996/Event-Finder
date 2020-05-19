@@ -7,21 +7,60 @@
 </head>
 <body>
     <h1>Event Finder</h1>
-    <button id = 'listRepos'>List Repos</button>
-    <div id = 'repoList'>
-
+    <div id = 'repoList'>  <!-- Two divs to seperate information cleanly. Left empty to populate through script later. -->
+    </div>
+    <div id = 'eventList'>
     </div>
 
-<script> 
+<script>
+var ownerUserName = prompt("Plase enter the username of the target repository's owner:", "username") //Asks the user for desired username
 const listRepos = document.getElementById("listRepos")
-listRepos.addEventListener("click", getRepos)
+const eventList = document.getElementById("eventList")
+getRepos()
+
 async function getRepos() {
-    const listReposReponse = await fetch("https://api.github.com")
+    clearRepoList() // See below
+    const listReposReponse = await fetch("https://api.github.com/users/" + ownerUserName + "/repos")
     const listReposResult = await listReposReponse.json() 
-
-    console.log(listReposResult)
+    listReposResult.forEach(element => { // Iterates through github api's returned json file to list and create links for each repo
+        const anchor = document.createElement("a")
+        anchor.href = element.html_url
+        anchor.textContent = element.name
+        repoList.appendChild(anchor)
+        repoList.appendChild(document.createElement("br"))
+    });
+    getRepoEvents()
 }
-
+async function getRepoEvents() {
+    clearEventList() // See below 
+    var targetRepoName = prompt("Please enter the name of the target repository", "repo name") // Asks the user which repo they want event info for
+    var eventFilter = prompt("Please enter an event type to filter for. If none, write 'None'", "None") // Asks the user if they want to filter events
+    const repoEventsResponse = await fetch("https://api.github.com/repos/" + ownerUserName + "/" + targetRepoName + "/events")
+    const repoEventsResult = await repoEventsResponse.json()
+    if (eventFilter == "None" || eventFilter == "") { // If no filter is called, list up to thirty events
+        repoEventsResult.forEach(element => {
+        eventList.innerHTML += "Event ID:" + element.id + ", Type:" + element.type + ", TimeStamp:" + element.created_at + "  Pefromed by:" + element.actor.display_login
+        eventList.appendChild(document.createElement("br"))
+    });
+    }
+    else { // If a filter is called, checks if each type matches, then does the same as before if true
+        repoEventsResult.forEach(element => {
+            if (element.type == eventFilter) {
+                eventList.innerHTML += "Event ID:" + element.id + ", Type:" + element.type + ", TimeStamp:" + element.created_at + "  Pefromed by:" + element.actor.display_login
+                eventList.appendChild(document.createElement("br"))
+            }
+        });
+    }
+}
+// Refreshes divs each time. Probably not necessary after button removal.
+function clearRepoList() {
+    while(repoList.firstChild)
+        repoList.removeChild(repoList.firstChild)
+}
+function clearEventList() {
+    while(eventList.firstChild)
+        eventList.removeChild(eventList.firstChild)
+}
 </script>
 
 </body>
