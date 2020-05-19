@@ -16,7 +16,7 @@
 const listRepos = document.getElementById("listRepos")
 listRepos.addEventListener("click", getRepos)
 async function getRepos() {
-    const listReposReponse = await fetch("https://api.github.com")
+    const listReposReponse = await fetch("https://api.github.com/users/jmunguia1996/repos")
     const listReposResult = await listReposReponse.json() 
 
     console.log(listReposResult)
